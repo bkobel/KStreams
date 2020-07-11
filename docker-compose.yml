@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  eventsproducer:
+    image: ${DOCKER_REGISTRY-}eventsproducer
+    build:
+      context: .
+      dockerfile: EventsProducer/Dockerfile
+
+  eventsconsumer:
+    image: ${DOCKER_REGISTRY-}eventsconsumer
+    build:
+      context: .
+      dockerfile: EventsConsumer/Dockerfile
+
+networks:
+  default:
+    external:
+      name: confluent 
