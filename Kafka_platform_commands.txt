@@ -1,0 +1,62 @@
+## ZooKeeper ##
+docker run `
+    -p 2181:2181 `
+    --net=confluent `
+    --name=zookeeper `
+    -e ZOOKEEPER_CLIENT_PORT=2181 `
+    confluentinc/cp-zookeeper
+
+## Kafka ##
+docker run `
+    -p 9092:9092 `
+    --net=confluent `
+    --name=kafka `
+    -e KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181 `
+    -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092 `
+    -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 `
+    confluentinc/cp-kafka
+
+## schema registry ##
+docker run --net=confluent --name=schema-registry `
+    -p 8008:8081 `
+    -e SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL=zookeeper:2181 `
+    -e SCHEMA_REGISTRY_HOST_NAME=schema-registry `
+    -e SCHEMA_REGISTRY_LISTENERS=http://0.0.0.0:8081 `
+    confluentinc/cp-schema-registry
+
+## REST proxy ##
+docker run --net=confluent --name=kafka-rest `
+    -p 8082:8082 `
+    -e KAFKA_REST_ZOOKEEPER_CONNECT=zookeeper:2181 `
+    -e KAFKA_REST_LISTENERS=http://0.0.0.0:8082 `
+    -e KAFKA_REST_SCHEMA_REGISTRY_URL=http://schema-registry:8081 `
+    -e KAFKA_REST_HOST_NAME=kafka-rest `
+    confluentinc/cp-kafka-rest
+
+## Control Center ##
+docker run `
+    --name=control-center `
+    --net=confluent `
+    --ulimit nofile=16384:16384 `
+    -p 9021:9021 `
+    -v /tmp/control-center/data:/var/lib/confluent-control-center `
+    -e CONTROL_CENTER_ZOOKEEPER_CONNECT=zookeeper:2181 `
+    -e CONTROL_CENTER_BOOTSTRAP_SERVERS=kafka:9092 `
+    -e CONTROL_CENTER_REPLICATION_FACTOR=1 `
+    -e CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS=1 `
+    -e CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS=1 `
+    -e CONTROL_CENTER_STREAMS_NUM_STREAM_THREADS=2 `
+    -e CONTROL_CENTER_CONNECT_CLUSTER=http://kafka-connect:8082 `
+    confluentinc/cp-enterprise-control-center
+
+  ## misc ##
+  docker run --net=confluent `
+    --rm confluentinc/cp-kafka:5.0.0 `
+    kafka-topics --create --topic foo --partitions 1 `
+    --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
+
+
+docker run --hostname dns.mageddo `
+-v /var/run/docker.sock:/var/run/docker.sock `
+-v /etc/resolv.conf:/etc/resolv.conf `
+defreitas/dns-proxy-server
