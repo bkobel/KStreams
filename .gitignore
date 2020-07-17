@@ -294,3 +294,6 @@ __pycache__/
 .vscode
 
 /ABB.Ability.Cloud.InfoModel.WebApi/appsettings.Develop.json
+
+# Java
+*.jar
