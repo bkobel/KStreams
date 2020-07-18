@@ -1,5 +1,3 @@
-import io.confluent.common.utils.TestUtils;
-
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
@@ -15,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    static final String bootstrapServers = "localhost:9092";
+    static final String bootstrapServers = "kafka:9092";
     static final String inputTopic = "streams-plaintext-input";
     static final String outputTopic = "streams-wordcount-output";
 
@@ -52,7 +50,7 @@ public class Main {
 
     /**
      * Configure the Streams application.
-     *
+     * <p>
      * Various Kafka Streams related settings are defined here such as the location of the target Kafka cluster to use.
      * Additionally, you could also define Kafka Producer and Kafka Consumer settings when needed.
      *
