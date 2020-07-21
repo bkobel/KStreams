@@ -1,18 +1,17 @@
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 
+import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
-import org.apache.kafka.common.serialization.Serializer;
 
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 public class SamplingSvc {
     static final String bootstrapServers = "kafka:9092";
@@ -23,6 +22,9 @@ public class SamplingSvc {
     public static void run() {
         // Configure the Streams application.
         final Properties streamsConfiguration = getStreamsConfiguration(bootstrapServers);
+
+        
+
 
         // Define the processing topology of the Streams application.
         final StreamsBuilder builder = new StreamsBuilder();
@@ -66,10 +68,6 @@ public class SamplingSvc {
         // Where to find Kafka broker(s).
         streamsConfiguration.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
-        // Specify default (de)serializers for record keys and for record values.
-        streamsConfiguration.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());
-        streamsConfiguration.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, new JsonPOJODeserializer().getClass().getName());
-
         // Records should be flushed every 10 seconds. This is less than the default
         // in order to keep this example interactive.
         streamsConfiguration.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 10 * 1000);
@@ -87,10 +85,12 @@ public class SamplingSvc {
      * @param builder StreamsBuilder to use
      */
     static void createWordCountStream(final StreamsBuilder builder) {
+        JsonSerializer<PlatformEventModel> evtJsonSerializer = new JsonSerializer<>();
+        JsonDeserializer<PlatformEventModel> evtJsonDeserializer = new JsonDeserializer<>(PlatformEventModel.class);
+        Serde<PlatformEventModel> evtSerde = Serdes.serdeFrom(evtJsonSerializer, evtJsonDeserializer);
 
-        PlatformEventModel
-
-        final KStream<String, PlatformEventModel> platformEventsStream = builder.stream(inputTopic);
+        final KStream<String, PlatformEventModel> platformEventsStream = builder.stream(inputTopic,
+                Consumed.with(Serdes.String(), evtSerde));
 
         final KTable<PlatformEventType, Long> evtCount = platformEventsStream
                 .groupBy((k, v) -> v.Headers.EventType)

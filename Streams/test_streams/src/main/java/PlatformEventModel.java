@@ -1,14 +1,11 @@
-import org.apache.kafka.common.serialization.Serializer;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 
-public class PlatformEventModel implements Serializer<PlatformEventModel> {
+public class PlatformEventModel implements Serializable {
+    @JsonProperty("headers")
     public PlatformEventHeader Headers;
 
+    @JsonProperty("payload")
     public String Payload;
-
-    @Override
-    public byte[] serialize(String s, PlatformEventModel platformEventModel) {
-        return new byte[0];
-    }
 }
