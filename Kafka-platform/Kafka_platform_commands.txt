@@ -49,43 +49,14 @@ docker run `
     -e CONTROL_CENTER_CONNECT_CLUSTER=http://kafka-connect:8082 `
     confluentinc/cp-enterprise-control-center
 
-## misc ##
-docker run --net=confluent `
---rm confluentinc/cp-kafka:5.0.0 `
-kafka-topics --create --topic foo --partitions 1 `
---replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
+  ## misc ##
+  docker run --net=confluent `
+    --rm confluentinc/cp-kafka:5.0.0 `
+    kafka-topics --create --topic foo --partitions 1 `
+    --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
 
 
 docker run --hostname dns.mageddo `
 -v /var/run/docker.sock:/var/run/docker.sock `
 -v /etc/resolv.conf:/etc/resolv.conf `
 defreitas/dns-proxy-server
-
-
-docker run `
-  --net=confluent `
-  --rm confluentinc/cp-kafka `
-  kafka-topics --create --topic foo --partitions 1 --replication-factor 1 `
-  --if-not-exists --zookeeper zookeeper:2181
-
-
-docker run `
-  --net=confluent `
-  --rm `
-  confluentinc/cp-kafka `
-  kafka-topics --describe --topic foo --zookeeper zookeeper:2181
-
-
-docker run `
-  --net=confluent `
-  --rm `
-  confluentinc/cp-kafka `
-  kafka-console-consumer --bootstrap-server kafka:9092 --topic foo --from-beginning --max-messages 42
-
-
-docker run `
-  --net=confluent `
-  --rm `
-  confluentinc/cp-kafka `
-  bash -c "'seq 100' | kafka-console-producer --request-required-acks 1 \
-  --broker-list kafka:9092 --topic streams-plaintext-input && echo 'Produced 42 messages.'"

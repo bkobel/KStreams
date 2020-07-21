@@ -1,14 +1,19 @@
-﻿using System;
+﻿using Confluent.Kafka;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Confluent.Kafka;
+using Confluent.Kafka.SyncOverAsync;
+using Confluent.SchemaRegistry.Serdes;
+using EventsProducer;
 
 namespace EventsConsumer
 {
-    public class Program
+    public static class Program
     {
         public static async Task Main(string[] args)
         {
+            var topicName = "test-platform-evt-k";
+
             var conf = new ConsumerConfig
             {
                 GroupId = "test-consumer-group",
@@ -21,38 +26,44 @@ namespace EventsConsumer
                 AutoOffsetReset = AutoOffsetReset.Earliest
             };
 
-            using (var c = new ConsumerBuilder<Ignore, string>(conf).Build())
+            using var c = new ConsumerBuilder<Null, PlatformEventModel>(conf)
+                .SetValueDeserializer(new JsonDeserializer<PlatformEventModel>().AsSyncOverAsync())
+                .SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}"))
+                .Build();
+
+            c.Subscribe(topicName);
+
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, e) =>
             {
-                c.Subscribe("test");
+                e.Cancel = true; // prevent the process from terminating.|
+                cts.Cancel();
+            };
 
-                CancellationTokenSource cts = new CancellationTokenSource();
-                Console.CancelKeyPress += (_, e) => {
-                    e.Cancel = true; // prevent the process from terminating.
-                    cts.Cancel();
-                };
-
-                try
+            try
+            {
+                while (true)
                 {
-                    while (true)
+                    try
                     {
-                        try
-                        {
-                            var cr = c.Consume(cts.Token);
-                            Console.WriteLine($"Consumed message '{cr.Value}' at: '{cr.TopicPartitionOffset}'.");
-                        }
-                        catch (ConsumeException e)
-                        {
-                            Console.WriteLine($"Error occured: {e.Error.Reason}");
-                        }
+                        var cr = c.Consume(cts.Token);
+                        Console.WriteLine($"Consumed message '{cr.Message.Value}' at: '{cr.TopicPartitionOffset}'.");
+                    }
+                    catch (ConsumeException ex)
+                    {
+                        Console.WriteLine($"Error occured: {ex.Error.Reason}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    // Ensure the consumer leaves the group cleanly and final offsets are committed.
-                    c.Close();
-                }
             }
-
+            catch (OperationCanceledException)
+            {
+                // Ensure the consumer leaves the group cleanly and final offsets are committed.
+                c.Close();
+            }
         }
     }
 }
