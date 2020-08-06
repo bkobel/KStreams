@@ -14,7 +14,7 @@ namespace EventsProducer
         public static async Task Main(string[] args)
         {
             var config = new ProducerConfig { BootstrapServers = "kafka:9092" };
-            var topicName = "test-platform-evt-k";
+            var topicName = "test-platform-evt-n";
 
             var schemaRegistryConfig = new SchemaRegistryConfig
             {
@@ -71,8 +71,8 @@ namespace EventsProducer
             result.Headers = new Headers
             {
                 new Header("id", Guid.NewGuid().ToByteArray()),
-                new Header("type", Encoding.UTF8.GetBytes(PlatformEventType.ObjectModelCreated.ToString())),
-                new Header("Content", Encoding.UTF8.GetBytes(PlatformEventContent.full.ToString()))
+                new Header("type", Encoding.UTF32.GetBytes(PlatformEventType.ObjectModelCreated.ToString())),
+                new Header("Content", Encoding.UTF32.GetBytes(PlatformEventContent.full.ToString()))
             };
 
             return result;

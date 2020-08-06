@@ -12,7 +12,7 @@ namespace EventsConsumer
     {
         public static async Task Main(string[] args)
         {
-            var topicName = "test-platform-evt-k";
+            var topicName = "test-platform-evt-n";
 
             var conf = new ConsumerConfig
             {

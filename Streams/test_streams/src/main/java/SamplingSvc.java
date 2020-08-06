@@ -1,3 +1,5 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -15,15 +17,27 @@ import java.util.Properties;
 
 public class SamplingSvc {
     static final String bootstrapServers = "kafka:9092";
-    static final String inputTopic = "test-platform-evt1";
+    static final String inputTopic = "test-platform-evt-n";
 
     static final String outputTopic = "streams-wordcount-output";
 
-    public static void run() {
+    public static void run() throws JsonProcessingException {
         // Configure the Streams application.
         final Properties streamsConfiguration = getStreamsConfiguration(bootstrapServers);
 
-        
+        final PlatformEventModel test = new PlatformEventModel();
+        test.Headers = new PlatformEventHeader();
+        test.Headers.EventType = PlatformEventType.TypeCreated;
+        test.Headers.Content = PlatformEventContent.full;
+        test.Headers.Url = "url";
+        test.Headers.Id = "id";
+
+        final String str = new ObjectMapper().writeValueAsString(test);
+
+        System.out.println(str);
+
+
+        System.out.println(new ObjectMapper().readValue(str, PlatformEventModel.class).Headers.Url);
 
 
         // Define the processing topology of the Streams application.
